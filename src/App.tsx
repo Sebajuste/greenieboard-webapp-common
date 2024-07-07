@@ -1,26 +1,25 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
+import { RouterProvider } from 'react-router-dom';
+import { APP_ROUTER } from './router';
+import EvaluationService from './services/evaluation-service';
+import { createService } from './services/service-provider';
+
+
+
+export const EvaluationServiceProvider = createService<EvaluationService>(new EvaluationService());
 
 function App() {
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <EvaluationServiceProvider.Provider>
+        <RouterProvider router={APP_ROUTER} />
+      </EvaluationServiceProvider.Provider>
     </div>
   );
+
 }
 
 export default App;

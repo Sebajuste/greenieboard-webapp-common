@@ -1,0 +1,92 @@
+.lso-evaluation-page {
+  height: 100%;
+  max-width: 100%;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+
+  .lso-evaluation-content {
+    flex-grow: 1;
+    // min-height: 400px;
+
+    .lso-screen {
+      position: relative;
+      overflow: hidden;
+      max-width: 800px;
+
+      .lso-stop-watch {
+        position: absolute;
+        margin: 1em;
+        bottom: 0;
+        right: 0;
+      }
+    }
+
+    .lso-evaluation-infos {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      margin: 0.5em;
+    }
+
+    .lso-state {
+      display: flex;
+      border: 1px solid #cecece;
+      border-radius: 4px;
+
+      h5 {
+        margin: 0;
+      }
+
+      * {
+        flex-grow: 1;
+      }
+
+      .lso-advises {
+        // display: flex;
+        // flex-direction: column;
+
+        li {
+          text-align: left;
+        }
+      }
+
+    }
+
+    .evaluation-steps {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100%;
+      justify-content: space-start;
+      // margin: 1em;
+      gap: 10px;
+      color: #222;
+
+      .evaluation-step {
+        flex-grow: 0;
+        background-color: #cecece;
+        border-radius: 4px;
+        padding: 0.5rem;
+        transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+
+        h4 {
+          margin: 0;
+        }
+
+        .evaluation-items {
+
+          label {}
+
+        }
+
+      }
+
+    }
+
+  }
+
+  .lso-evaluation-footer {
+    flex-grow: 0;
+  }
+
+}

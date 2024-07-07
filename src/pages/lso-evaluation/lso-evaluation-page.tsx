@@ -1,0 +1,262 @@
+import { useContext, useEffect, useState } from "react";
+import { LSODS } from "../../components/LSODS/lsods";
+import { StopWatch } from "../../components/stop-watch/stop-watch";
+
+
+import { useDebounce } from "../../hooks/useDebounce";
+import { useNavigate } from "react-router-dom";
+import { EvaluationServiceProvider } from "../../App";
+import { LSOEvaluationSteps, LSOAnalysePosition, LSOEvaluationStep, Wire, LSOStep, LSOGrade, analyseGrade } from "../../services/evaluation-service";
+
+import "./lso-evaluation-page.scss";
+import { ITEM_INFO } from "../../services/evaluation-iteminfo";
+import { Grade } from "../../components/lso-grade/lso-grade";
+
+interface Step {
+  name: LSOStep,
+  label?: string,
+  scale: number
+}
+
+
+const STEPS: Array<Step> = [
+  {
+    name: 'BC',
+    label: 'Ball call',
+    scale: 0.2
+  }, {
+    name: 'X',
+    label: 'At start',
+    scale: 0.25
+  }, {
+    name: 'IM',
+    label: 'In the middle',
+    scale: 0.5
+  }, {
+    name: 'IC',
+    label: 'In close',
+    scale: 0.7
+  }, {
+    name: 'AR',
+    label: 'At ramp',
+    scale: 1.6
+  }, {
+    name: 'TL',
+    label: 'To Land',
+    scale: 4.0
+  }, {
+    name: 'IW',
+    label: 'In Wires',
+    scale: 4.0
+  }
+]
+
+
+function EvaluationStep({ step, state }: { step: LSOStep, state: LSOEvaluationStep }) {
+
+  const [x, setX] = useState(50);
+  const [opacity, setOpacity] = useState(0);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setX(0);
+      setOpacity(1);
+    }, 100);
+
+  }, [])
+
+  const items = state.items.map((item: string, index: number) => {
+    return <label key={index}>{item}, </label>
+  });
+
+  return (
+    <div className="evaluation-step" style={{ transform: `translateX(${x}px)`, opacity: opacity }}>
+      <h4>{step}</h4>
+      <div className="evaluation-items">
+        {items}
+      </div>
+    </div>
+  )
+}
+
+function EvaluationSteps({ evaluationSteps }: { evaluationSteps: LSOEvaluationSteps }) {
+
+  const steps = Object.keys(evaluationSteps).map((stepID, index) => {
+
+    const step = stepID as LSOStep;
+
+    const state = evaluationSteps[step];
+
+    return <EvaluationStep key={index} step={step} state={state} />
+
+  });
+
+
+  return (
+    <div className="evaluation-steps">
+      {steps}
+    </div>
+  )
+
+}
+
+
+function LSOState({ stepIndex, evaluationSteps }: { stepIndex: number, evaluationSteps: LSOEvaluationSteps }) {
+
+  const step = STEPS[stepIndex];
+
+  const previousStep = stepIndex > 0 ? STEPS[stepIndex - 1] : null;
+
+  const lsoState = previousStep ? previousStep.name : step.name;
+
+  const steps = evaluationSteps[lsoState];
+
+
+  const advices = steps.items.map((item: string, index: number) => {
+    return (<li key={index}> {ITEM_INFO[item] ?? item} </li>);
+  });
+
+  const waveOff = (lsoState == 'AR' && (steps.items.includes('P') || steps.items.includes('_P_'))) ||
+    ((lsoState == 'TL') && (steps.items.includes('P') || steps.items.includes('_P_')));
+
+  return (
+    <div className="lso-state">
+      <div>
+        <h5>Current Step</h5>
+        <label>{step?.name} - {step.label}</label>
+      </div>
+      <ul className="lso-advises">
+        {waveOff ? 'Wave Off ! Wave Off !' : advices}
+      </ul>
+    </div>
+  );
+
+}
+
+
+
+
+export function LsoEvaluationPage() {
+
+  const [helper, setHelper] = useState(false);
+
+  const [isEvaluating, setEvaluating] = useState(false);
+
+  const [modex, setModex] = useState('401');
+
+  const [stepIndex, setStepIndex] = useDebounce(1000, 0)
+
+  const [evaluationSteps, setEvaluationSteps] = useState<LSOEvaluationSteps>({} as LSOEvaluationSteps);
+
+  const [time, setTime] = useState(0);
+
+  const [wire, setWire] = useState<Wire | null>(null);
+
+  const navigate = useNavigate();
+
+  const evaluationService = useContext(EvaluationServiceProvider.Context);
+
+
+  const stateChangedHandler = (evaluationStep: LSOEvaluationStep) => {
+    console.log(evaluationStep)
+
+    setEvaluationSteps(oldValue => {
+
+      const step = STEPS[stepIndex];
+
+      return { ...oldValue, [step.name]: evaluationStep };
+    })
+
+    setStepIndex((oldValue: number) => {
+
+      const newValue = (oldValue + 1);
+
+      if (newValue >= STEPS.length) {
+        setEvaluating(false);
+        return oldValue;
+      }
+
+      return newValue;
+    })
+  }
+
+  const onPositionChangedHandler = (position: { x: number, y: number }) => {
+
+    if (!isEvaluating && time > 0) return;
+
+    setEvaluating(true);
+
+    const analyseStep = LSOAnalysePosition(position);
+
+    stateChangedHandler(analyseStep);
+
+  };
+
+  const saveHandler = () => {
+    evaluationService.addEvaluation({
+      modex,
+      time,
+      steps: evaluationSteps,
+      grade: analyseGrade(wire as Wire, evaluationSteps),
+      wire: wire as Wire
+    });
+    navigate('/lso')
+  };
+
+
+  return (
+    <div className="lso-evaluation-page">
+      <div className="lso-evaluation-content">
+        <h3>LSO Evaluation</h3>
+        <p>
+          <input type="number" value={modex} onChange={(e: any) => setModex(e.target.value)} />
+          <span>
+            <label>Help</label>
+            <input type="checkbox" checked={helper} onChange={(e: any) => setHelper(e.target.checked)}></input>
+          </span>
+        </p>
+        <div className="lso-screen">
+          <LSODS onPositionChanged={onPositionChangedHandler} planeScale={STEPS[stepIndex]?.scale ?? 1.0} helper={helper} />
+          <div className="lso-stop-watch">
+            <StopWatch active={isEvaluating} onStopped={setTime} />
+          </div>
+        </div>
+
+        <div className="lso-evaluation-infos">
+
+          {isEvaluating ? (
+            <LSOState stepIndex={stepIndex} evaluationSteps={evaluationSteps} />
+          ) : null}
+
+
+          <EvaluationSteps evaluationSteps={evaluationSteps} />
+
+          {!isEvaluating && wire != null ? <Grade grade={analyseGrade(wire, evaluationSteps)} /> : null}
+
+          {!isEvaluating && Object.keys(evaluationSteps).length > 0 ? (
+            <p>
+              <button onClick={() => setWire('#1')}>#1</button>
+              <button onClick={() => setWire('#2')}>#2</button>
+              <button onClick={() => setWire('#3')}>#3</button>
+              <button onClick={() => setWire('#4')}>#4</button>
+              <button onClick={() => setWire('B')}>Bolter</button>
+              <button onClick={() => setWire('WO')}>Wave Off</button>
+            </p>
+          ) : null}
+
+          {wire != null ? (
+            <p>
+              <button onClick={saveHandler}>Save</button>
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <p className="lso-evaluation-footer">
+        <button onClick={() => navigate('/lso')}>Cancel</button>
+      </p>
+
+    </div>
+  );
+
+}

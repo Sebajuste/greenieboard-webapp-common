@@ -1,0 +1,49 @@
+.lso-grade {
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  text-align: center;
+
+  color: #222;
+  min-width: 50px;
+  min-height: 50px;
+
+  label {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  &.grade-_OK_ {
+    background-color: green;
+  }
+
+  &.grade-OK {
+    background-color: green;
+  }
+
+  &.grade-xOKx {
+    background-color: yellow;
+  }
+
+  &.grade-B {
+    background-color: darkslategrey;
+  }
+
+  &.grade---,
+  &.grade-B--,
+  &.grade---B {
+    background-color: orange;
+  }
+
+  &.grade-WO {
+    background-color: red;
+  }
+
+  &.grade-C {
+    background-color: black;
+    color: white;
+  }
+
+}
