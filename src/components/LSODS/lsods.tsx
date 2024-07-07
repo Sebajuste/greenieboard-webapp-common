@@ -1,5 +1,5 @@
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import planeImage from './f18-1024x404.png';
 
 import './lsods.scss';
@@ -24,13 +24,47 @@ export function LSODS({ planeScale = 1, helper = false, onPositionChanged }: { p
 
   const [position, setPosition] = useState<null | PlanePosition>(null);
 
+  const onTouchStart = (e: any) => {
 
+  };
 
-  const onClickHandler = (e: any) => {
+  const onTouchEnd = (e: any) => {
+    e.preventDefault();
 
-    const current = svgRef?.current as any;
+    const el = svgRef.current as any;
+    const rect = el.getBoundingClientRect();
 
-    const rect = current.getBoundingClientRect();
+    const x = (e.changedTouches[0].clientX - rect.left) - PLANE_IMAGE_SETTINGS.with / 2; //x position within the element.
+    const y = (e.changedTouches[0].clientY - rect.top) - PLANE_IMAGE_SETTINGS.height / 2;  //y position within the element.
+
+    setPosition({ x: x, y: y });
+
+    if (onPositionChanged) onPositionChanged({
+      x: (e.changedTouches[0].clientX - rect.left) / rect.width,
+      y: (e.changedTouches[0].clientY - rect.top) / rect.height
+    });
+
+  }
+
+  const onTouchMove = (e: any) => {
+
+    e.preventDefault();
+
+    const el = svgRef.current as any;
+    const rect = el.getBoundingClientRect();
+
+    const x = (e.changedTouches[0].clientX - rect.left) - PLANE_IMAGE_SETTINGS.with / 2; //x position within the element.
+    const y = (e.changedTouches[0].clientY - rect.top) - PLANE_IMAGE_SETTINGS.height / 2;  //y position within the element.
+
+    setPosition({ x: x, y: y });
+
+  };
+
+  const onClick = (e: any) => {
+    e.preventDefault();
+
+    const el = svgRef.current as any;
+    const rect = el.getBoundingClientRect();
 
     const x = (e.clientX - rect.left) - PLANE_IMAGE_SETTINGS.with / 2; //x position within the element.
     const y = (e.clientY - rect.top) - PLANE_IMAGE_SETTINGS.height / 2;  //y position within the element.
@@ -40,9 +74,9 @@ export function LSODS({ planeScale = 1, helper = false, onPositionChanged }: { p
     if (onPositionChanged) onPositionChanged({
       x: (e.clientX - rect.left) / rect.width,
       y: (e.clientY - rect.top) / rect.height
-    })
+    });
 
-  }
+  };
 
   const helpBoxes =
     helper ? (
@@ -54,7 +88,7 @@ export function LSODS({ planeScale = 1, helper = false, onPositionChanged }: { p
     ) : null;
 
   return (
-    <div className='lsods' onClick={onClickHandler}>
+    <div className='lsods' onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} onTouchStart={onTouchStart} onClick={onClick}>
       {position ? <img src={planeImage} className='plane' alt="Plane position" style={{ transform: `translate(${position.x}px, ${position.y}px) scale(${planeScale})` }} /> : null}
 
       <svg ref={svgRef} viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg"  >

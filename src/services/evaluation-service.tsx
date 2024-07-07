@@ -17,7 +17,7 @@ export interface LSOEvaluationStep {
 export type LSOEvaluationSteps = { [step in LSOStep]: LSOEvaluationStep };
 
 export interface LSOEvaluation {
-  modex: string,
+  modex: number,
   time: number,
   grade: LSOGrade,
   wire: Wire,

@@ -1,16 +1,20 @@
 import { useContext, useEffect, useState } from "react";
 import { LSODS } from "../../components/LSODS/lsods";
 import { StopWatch } from "../../components/stop-watch/stop-watch";
-
+import CancelIcon from '@mui/icons-material/Cancel';
+import SaveIcon from '@mui/icons-material/Save';
 
 import { useDebounce } from "../../hooks/useDebounce";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { EvaluationServiceProvider } from "../../App";
 import { LSOEvaluationSteps, LSOAnalysePosition, LSOEvaluationStep, Wire, LSOStep, LSOGrade, analyseGrade } from "../../services/evaluation-service";
 
 import "./lso-evaluation-page.scss";
 import { ITEM_INFO } from "../../services/evaluation-iteminfo";
 import { Grade } from "../../components/lso-grade/lso-grade";
+import { Box, Button, Chip, LinearProgress, styled, Switch, TextField } from "@mui/material";
+import { FlexBox } from "../../components/flex-box";
+import { CountDown } from "../../components/stop-watch/count-down";
 
 interface Step {
   name: LSOStep,
@@ -66,15 +70,18 @@ function EvaluationStep({ step, state }: { step: LSOStep, state: LSOEvaluationSt
   }, [])
 
   const items = state.items.map((item: string, index: number) => {
-    return <label key={index}>{item}, </label>
+    if (item.includes('(')) {
+      return (<Chip key={index} label={item} size="small" color="primary" variant="outlined" />)
+    }
+    return (<Chip key={index} label={item} size="small" color="primary" />)
   });
 
   return (
     <div className="evaluation-step" style={{ transform: `translateX(${x}px)`, opacity: opacity }}>
       <h4>{step}</h4>
-      <div className="evaluation-items">
+      <FlexBox style={{ gap: '0.5em' }} >
         {items}
-      </div>
+      </FlexBox>
     </div>
   )
 }
@@ -120,7 +127,7 @@ function LSOState({ stepIndex, evaluationSteps }: { stepIndex: number, evaluatio
     ((lsoState == 'TL') && (steps.items.includes('P') || steps.items.includes('_P_')));
 
   return (
-    <div className="lso-state">
+    <FlexBox className="lso-state">
       <div>
         <h5>Current Step</h5>
         <label>{step?.name} - {step.label}</label>
@@ -128,23 +135,40 @@ function LSOState({ stepIndex, evaluationSteps }: { stepIndex: number, evaluatio
       <ul className="lso-advises">
         {waveOff ? 'Wave Off ! Wave Off !' : advices}
       </ul>
-    </div>
+    </FlexBox>
   );
 
 }
 
 
+// styled component
+const StyledFlexBox = styled(FlexBox)(({ theme }) => ({
+  justifyContent: "space-between",
+  alignItems: "center",
+  flexWrap: "wrap",
+  marginBottom: 20,
+  [theme.breakpoints.down(500)]: {
+    width: "100%",
+    "& .MuiInputBase-root": { maxWidth: "100%" },
+    "& .MuiButton-root": {
+      width: "100%",
+      marginTop: 15,
+    },
+  },
+}));
 
 
 export function LsoEvaluationPage() {
+
+  const initialModex = parseInt(useParams().modex ?? '0');
 
   const [helper, setHelper] = useState(false);
 
   const [isEvaluating, setEvaluating] = useState(false);
 
-  const [modex, setModex] = useState('401');
+  const [modex, setModex] = useState(initialModex);
 
-  const [stepIndex, setStepIndex] = useDebounce(1000, 0)
+  const [stepIndex, setStepIndex] = useDebounce(2000, 0)
 
   const [evaluationSteps, setEvaluationSteps] = useState<LSOEvaluationSteps>({} as LSOEvaluationSteps);
 
@@ -156,28 +180,30 @@ export function LsoEvaluationPage() {
 
   const evaluationService = useContext(EvaluationServiceProvider.Context);
 
+  const [enableCountDown, setEnableCountDown] = useState(false);
+  const [timer, setTimer] = useState(0);
+
 
   const stateChangedHandler = (evaluationStep: LSOEvaluationStep) => {
-    console.log(evaluationStep)
 
     setEvaluationSteps(oldValue => {
-
       const step = STEPS[stepIndex];
-
       return { ...oldValue, [step.name]: evaluationStep };
     })
 
     setStepIndex((oldValue: number) => {
-
       const newValue = (oldValue + 1);
-
+      setEnableCountDown(false);
+      setTimer(0);
       if (newValue >= STEPS.length) {
         setEvaluating(false);
         return oldValue;
       }
-
       return newValue;
-    })
+    });
+
+
+
   }
 
   const onPositionChangedHandler = (position: { x: number, y: number }) => {
@@ -185,6 +211,7 @@ export function LsoEvaluationPage() {
     if (!isEvaluating && time > 0) return;
 
     setEvaluating(true);
+    setEnableCountDown(true);
 
     const analyseStep = LSOAnalysePosition(position);
 
@@ -200,26 +227,41 @@ export function LsoEvaluationPage() {
       grade: analyseGrade(wire as Wire, evaluationSteps),
       wire: wire as Wire
     });
-    navigate('/lso')
+    navigate('/dashboard/lso')
   };
 
 
   return (
     <div className="lso-evaluation-page">
       <div className="lso-evaluation-content">
-        <h3>LSO Evaluation</h3>
-        <p>
-          <input type="number" value={modex} onChange={(e: any) => setModex(e.target.value)} />
-          <span>
-            <label>Help</label>
-            <input type="checkbox" checked={helper} onChange={(e: any) => setHelper(e.target.checked)}></input>
-          </span>
-        </p>
+        <h3 style={{ textAlign: "center" }}>LSO Evaluation</h3>
+        <FlexBox style={{ justifyContent: "space-between", paddingLeft: 10, marginBottom: 20 }}>
+
+          <TextField
+            type="number"
+            label="Modex"
+            id="outlined-size-small"
+            size="small"
+            value={modex} onChange={(e: any) => setModex(e.target.value)}
+          />
+
+          <FlexBox style={{ alignItems: "center" }}>
+            <label style={{ display: "block", fontWeight: 600 }}>
+              Help
+            </label>
+            <Switch value={helper} onChange={(e: any) => setHelper(e.target.checked)} />
+          </FlexBox>
+        </FlexBox>
+
         <div className="lso-screen">
           <LSODS onPositionChanged={onPositionChangedHandler} planeScale={STEPS[stepIndex]?.scale ?? 1.0} helper={helper} />
           <div className="lso-stop-watch">
             <StopWatch active={isEvaluating} onStopped={setTime} />
           </div>
+          { /*
+          <CountDown active={enableCountDown} countDown={2000} onProgress={setTimer} onStopped={() => setEnableCountDown(false)} />
+          <LinearProgress variant="determinate" value={(timer / 2000) * 100} />
+          */ }
         </div>
 
         <div className="lso-evaluation-infos">
@@ -228,33 +270,35 @@ export function LsoEvaluationPage() {
             <LSOState stepIndex={stepIndex} evaluationSteps={evaluationSteps} />
           ) : null}
 
-
           <EvaluationSteps evaluationSteps={evaluationSteps} />
 
           {!isEvaluating && wire != null ? <Grade grade={analyseGrade(wire, evaluationSteps)} /> : null}
 
           {!isEvaluating && Object.keys(evaluationSteps).length > 0 ? (
-            <p>
-              <button onClick={() => setWire('#1')}>#1</button>
-              <button onClick={() => setWire('#2')}>#2</button>
-              <button onClick={() => setWire('#3')}>#3</button>
-              <button onClick={() => setWire('#4')}>#4</button>
-              <button onClick={() => setWire('B')}>Bolter</button>
-              <button onClick={() => setWire('WO')}>Wave Off</button>
-            </p>
+            <FlexBox style={{ justifyContent: "space-between", flexWrap: 'wrap', gap: 10 }}>
+              <Button variant="outlined" onClick={() => setWire('#1')}>#1</Button>
+              <Button variant="outlined" color="success" onClick={() => setWire('#2')}>#2</Button>
+              <Button variant="outlined" color="success" onClick={() => setWire('#3')}>#3</Button>
+              <Button variant="outlined" color="success" onClick={() => setWire('#4')}>#4</Button>
+              <Button variant="outlined" onClick={() => setWire('B')}>Bolter</Button>
+              <Button variant="outlined" color="error" onClick={() => setWire('WO')}>Wave Off</Button>
+            </FlexBox>
           ) : null}
 
           {wire != null ? (
-            <p>
-              <button onClick={saveHandler}>Save</button>
-            </p>
-          ) : null}
-        </div>
-      </div>
+            <StyledFlexBox style={{ textAlign: "center", marginTop: 10 }}>
+              <Button variant="contained" onClick={saveHandler} startIcon={<SaveIcon />}>Save</Button>
 
-      <p className="lso-evaluation-footer">
-        <button onClick={() => navigate('/lso')}>Cancel</button>
-      </p>
+            </StyledFlexBox>
+          ) : null}
+
+          <StyledFlexBox style={{ textAlign: "center", marginTop: 10 }}>
+            <Button variant="contained" color="secondary" onClick={() => navigate('/dashboard/lso')} startIcon={<CancelIcon />} >Cancel</Button>
+          </StyledFlexBox>
+
+        </div>
+
+      </div>
 
     </div>
   );

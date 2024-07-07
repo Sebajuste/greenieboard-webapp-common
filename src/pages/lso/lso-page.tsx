@@ -1,12 +1,16 @@
-import { useContext, useState } from "react"
-import { Link } from "react-router-dom";
+import { FC, useContext, useState } from "react"
+import { Link, useNavigate, useNavigation } from "react-router-dom";
 import { EvaluationServiceProvider } from "../../App";
 import { LSOEvaluation } from "../../services/evaluation-service";
 import { Timer } from "../../components/stop-watch/timer";
 
 import './lso-page.scss';
 import { Grade } from "../../components/lso-grade/lso-grade";
+import { useTitle } from "../../components/portal/contexts/portal-context";
+import { Box, BoxProps, Button, InputBase, styled, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
 
+import ScrollBar from "simplebar-react";
+import { FlexBox } from "../../components/flex-box";
 
 function DiscordUser() {
 
@@ -60,11 +64,34 @@ function DiscordUser() {
 }
 
 
+// styled component
+const StyledFlexBox = styled(FlexBox)(({ theme }) => ({
+  justifyContent: "space-between",
+  alignItems: "center",
+  flexWrap: "wrap",
+  marginBottom: 20,
+  [theme.breakpoints.down(500)]: {
+    width: "100%",
+    "& .MuiInputBase-root": { maxWidth: "100%" },
+    "& .MuiButton-root": {
+      width: "100%",
+      marginTop: 15,
+    },
+  },
+}));
+
+
 export default function LsoPage() {
 
+  useTitle('Evaluations')
+
+  const navigate = useNavigate();
 
   const evaluationService = useContext(EvaluationServiceProvider.Context);
 
+  const [newModex, setNewModex] = useState('');
+
+  /*
   const evaluationItems = evaluationService.evaluations.map((evaluation: LSOEvaluation, index: number) => {
 
     return (
@@ -77,19 +104,88 @@ export default function LsoPage() {
       </div>
     );
   });
+  */
+
+  const startEvaluationHandler = () => {
+
+    navigate(`/evaluation/${newModex}`);
+
+  };
+
+  const evaluationItems = evaluationService.evaluations.map((evaluation: LSOEvaluation, index: number) => {
+
+    return (
+      <TableRow key={index} className="evaluation">
+        <TableCell>{evaluation.modex}</TableCell>
+        <TableCell><Timer time={evaluation.time} /></TableCell>
+        <TableCell>{evaluation.wire}</TableCell>
+        <TableCell>
+          <Grade grade={evaluation.grade} />
+        </TableCell>
+      </TableRow>
+    );
+  });
 
   return (
+    <Box pt={2} pb={4}>
+
+      <StyledFlexBox>
+        <TextField type="number" id="outlined-basic" label="Modex" variant="outlined" value={newModex} onChange={(e) => setNewModex(e.target.value)} />
+        <Button variant="contained" onClick={startEvaluationHandler} disabled={newModex === ''}>
+          New Evaluation
+        </Button>
+      </StyledFlexBox>
+
+      <Box>
+        <ScrollBar>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Modex</TableCell>
+                <TableCell>Time</TableCell>
+                <TableCell>Wire</TableCell>
+                <TableCell>Grade</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              <TableRow>
+                <TableCell>101</TableCell>
+                <TableCell>01:02:03</TableCell>
+                <TableCell>#2</TableCell>
+                <TableCell><Grade grade="(OK)" /></TableCell>
+              </TableRow>
+
+              <TableRow>
+                <TableCell>101</TableCell>
+                <TableCell>01:02:03</TableCell>
+                <TableCell>#2</TableCell>
+                <TableCell><Grade grade="OK" /></TableCell>
+              </TableRow>
+
+              {evaluationItems}
+
+            </TableBody>
+
+          </Table>
+        </ScrollBar>
+      </Box>
+
+    </Box >
+  );
+
+  /*
+  return (
     <main className="lso-page">
-      <h2>Evaluations</h2>
+
       <div className="evaluations">{evaluationItems}</div>
 
-
-
       <footer>
-        <Link to="/lso/new-evaluation" className="button">New Evaluation</Link>
+        <Link to="/new-evaluation" className="button">New Evaluation</Link>
       </footer>
 
     </main>
-  )
+  );
+  */
 
 }

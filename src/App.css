@@ -1,3 +1,4 @@
+/*
 body {
   height: 100vh;
   width: 100vw;
@@ -9,7 +10,9 @@ body {
   width: 100%;
   height: 100%;
 }
+*/
 
+/*
 .App {
   width: 100%;
   height: 100%;
@@ -20,7 +23,9 @@ main {
   width: 100%;
   height: 100%;
 }
+*/
 
+/*
 button,
 .button {
   margin: 0.5em;
@@ -41,3 +46,4 @@ button:hover {
 button:active {
   box-shadow: none;
 }
+  */

@@ -14,13 +14,11 @@ export function StopWatch({ active = false, onStopped }: { active?: boolean, onS
         setTime((time) => time + 10);
       }, 10);
     } else {
-      console.log('end timer: ', time);
       if (time > 0 && onStopped) onStopped(time);
       clearInterval(interval);
     }
+
     return () => {
-      console.log('end timer destructor', time);
-      // if (interval && onStopped) onStopped(time);
       clearInterval(interval);
     };
 
