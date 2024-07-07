@@ -27,7 +27,6 @@ function App() {
   };
 
   return (
-
     <EvaluationServiceProvider.Provider>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={theme}>
@@ -37,7 +36,6 @@ function App() {
         </ThemeProvider>
       </StyledEngineProvider>
     </EvaluationServiceProvider.Provider>
-
   );
 
 }

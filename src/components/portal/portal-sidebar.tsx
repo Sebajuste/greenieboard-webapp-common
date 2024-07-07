@@ -50,14 +50,11 @@ export function PortalSidebar({ menuList = [], showSideBar, closeSideBar }: { me
     closeSideBar();
   };
 
-  console.log('menuList: ', menuList)
-  console.log('downMd: ', downMd)
-
   // main menus content
   const mainSideBarContent = (
     <List sx={{ height: "100%" }}>
       <StyledListItemButton disableRipple>
-        <img src="/logo.png" alt="Logo" width={31} />
+        <img src="logo.png" alt="Logo" width={31} />
       </StyledListItemButton>
 
       <ScrollBar style={{ maxHeight: "calc(100% - 50px)" }}>

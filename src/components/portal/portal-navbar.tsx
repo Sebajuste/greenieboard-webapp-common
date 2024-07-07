@@ -75,7 +75,7 @@ export function PortalNavbar({ onToggleShowSideBar, children }: { onToggleShowSi
 
           <Box flexGrow={1} textAlign="center">
             <img
-              src="/logo.png"
+              src="logo.png"
               width="30"
               height="30"
               alt="Logo"

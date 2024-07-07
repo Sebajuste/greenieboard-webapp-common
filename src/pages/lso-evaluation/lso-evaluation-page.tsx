@@ -15,6 +15,7 @@ import { Grade } from "../../components/lso-grade/lso-grade";
 import { Box, Button, Chip, LinearProgress, styled, Switch, TextField } from "@mui/material";
 import { FlexBox } from "../../components/flex-box";
 import { CountDown } from "../../components/stop-watch/count-down";
+import { EvaluationSteps } from "../../components/lso-grade/lso-evaluation";
 
 interface Step {
   name: LSOStep,
@@ -56,56 +57,6 @@ const STEPS: Array<Step> = [
 ]
 
 
-function EvaluationStep({ step, state }: { step: LSOStep, state: LSOEvaluationStep }) {
-
-  const [x, setX] = useState(50);
-  const [opacity, setOpacity] = useState(0);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setX(0);
-      setOpacity(1);
-    }, 100);
-
-  }, [])
-
-  const items = state.items.map((item: string, index: number) => {
-    if (item.includes('(')) {
-      return (<Chip key={index} label={item} size="small" color="primary" variant="outlined" />)
-    }
-    return (<Chip key={index} label={item} size="small" color="primary" />)
-  });
-
-  return (
-    <div className="evaluation-step" style={{ transform: `translateX(${x}px)`, opacity: opacity }}>
-      <h4>{step}</h4>
-      <FlexBox style={{ gap: '0.5em' }} >
-        {items}
-      </FlexBox>
-    </div>
-  )
-}
-
-function EvaluationSteps({ evaluationSteps }: { evaluationSteps: LSOEvaluationSteps }) {
-
-  const steps = Object.keys(evaluationSteps).map((stepID, index) => {
-
-    const step = stepID as LSOStep;
-
-    const state = evaluationSteps[step];
-
-    return <EvaluationStep key={index} step={step} state={state} />
-
-  });
-
-
-  return (
-    <div className="evaluation-steps">
-      {steps}
-    </div>
-  )
-
-}
 
 
 function LSOState({ stepIndex, evaluationSteps }: { stepIndex: number, evaluationSteps: LSOEvaluationSteps }) {
@@ -183,6 +134,7 @@ export function LsoEvaluationPage() {
   const [enableCountDown, setEnableCountDown] = useState(false);
   const [timer, setTimer] = useState(0);
 
+  const timestamp = Date.now();
 
   const stateChangedHandler = (evaluationStep: LSOEvaluationStep) => {
 
@@ -222,6 +174,7 @@ export function LsoEvaluationPage() {
   const saveHandler = () => {
     evaluationService.addEvaluation({
       modex,
+      timestamp,
       time,
       steps: evaluationSteps,
       grade: analyseGrade(wire as Wire, evaluationSteps),
@@ -288,7 +241,6 @@ export function LsoEvaluationPage() {
           {wire != null ? (
             <StyledFlexBox style={{ textAlign: "center", marginTop: 10 }}>
               <Button variant="contained" onClick={saveHandler} startIcon={<SaveIcon />}>Save</Button>
-
             </StyledFlexBox>
           ) : null}
 

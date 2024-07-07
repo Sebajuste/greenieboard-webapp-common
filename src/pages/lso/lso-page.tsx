@@ -1,16 +1,23 @@
-import { FC, useContext, useState } from "react"
+import { FC, Fragment, useContext, useState } from "react"
 import { Link, useNavigate, useNavigation } from "react-router-dom";
+import { Box, BoxProps, Button, Collapse, IconButton, InputBase, styled, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+
 import { EvaluationServiceProvider } from "../../App";
 import { LSOEvaluation } from "../../services/evaluation-service";
 import { Timer } from "../../components/stop-watch/timer";
 
-import './lso-page.scss';
+
 import { Grade } from "../../components/lso-grade/lso-grade";
 import { useTitle } from "../../components/portal/contexts/portal-context";
-import { Box, BoxProps, Button, InputBase, styled, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
+
 
 import ScrollBar from "simplebar-react";
 import { FlexBox } from "../../components/flex-box";
+
+import './lso-page.scss';
+import { EvaluationSteps } from "../../components/lso-grade/lso-evaluation";
 
 function DiscordUser() {
 
@@ -81,6 +88,45 @@ const StyledFlexBox = styled(FlexBox)(({ theme }) => ({
 }));
 
 
+
+function Row({ evaluation }: { evaluation: LSOEvaluation }) {
+
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Fragment>
+      <TableRow>
+        <TableCell style={{ padding: 0 }}>
+          <IconButton
+            aria-label="expand row"
+            size="small"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+        <TableCell>{evaluation.modex}</TableCell>
+        <TableCell><Timer time={evaluation.time} /></TableCell>
+        <TableCell>{evaluation.wire}</TableCell>
+        <TableCell>
+          <Grade grade={evaluation.grade} />
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ margin: 1 }}>
+              <EvaluationSteps evaluationSteps={evaluation.steps} />
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </Fragment>
+  );
+
+}
+
+
 export default function LsoPage() {
 
   useTitle('Evaluations')
@@ -114,16 +160,7 @@ export default function LsoPage() {
 
   const evaluationItems = evaluationService.evaluations.map((evaluation: LSOEvaluation, index: number) => {
 
-    return (
-      <TableRow key={index} className="evaluation">
-        <TableCell>{evaluation.modex}</TableCell>
-        <TableCell><Timer time={evaluation.time} /></TableCell>
-        <TableCell>{evaluation.wire}</TableCell>
-        <TableCell>
-          <Grade grade={evaluation.grade} />
-        </TableCell>
-      </TableRow>
-    );
+    return (<Row key={index} evaluation={evaluation} />);
   });
 
   return (
@@ -141,6 +178,7 @@ export default function LsoPage() {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell style={{ padding: 0 }} />
                 <TableCell>Modex</TableCell>
                 <TableCell>Time</TableCell>
                 <TableCell>Wire</TableCell>
@@ -149,19 +187,6 @@ export default function LsoPage() {
             </TableHead>
 
             <TableBody>
-              <TableRow>
-                <TableCell>101</TableCell>
-                <TableCell>01:02:03</TableCell>
-                <TableCell>#2</TableCell>
-                <TableCell><Grade grade="(OK)" /></TableCell>
-              </TableRow>
-
-              <TableRow>
-                <TableCell>101</TableCell>
-                <TableCell>01:02:03</TableCell>
-                <TableCell>#2</TableCell>
-                <TableCell><Grade grade="OK" /></TableCell>
-              </TableRow>
 
               {evaluationItems}
 

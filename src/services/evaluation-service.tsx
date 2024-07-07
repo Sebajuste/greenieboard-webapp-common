@@ -18,6 +18,7 @@ export type LSOEvaluationSteps = { [step in LSOStep]: LSOEvaluationStep };
 
 export interface LSOEvaluation {
   modex: number,
+  timestamp: number,
   time: number,
   grade: LSOGrade,
   wire: Wire,
@@ -136,8 +137,8 @@ export default class EvaluationService {
   private _evaluations: Array<LSOEvaluation> = [];
 
   addEvaluation(evaluation: LSOEvaluation) {
-
     this._evaluations.push(evaluation);
+    this._evaluations = _.orderBy(this._evaluations, ['time'], ['asc']);
   }
 
   get evaluations() {
