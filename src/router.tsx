@@ -1,15 +1,14 @@
 import { createHashRouter, Navigate } from "react-router-dom";
+import SpeedIcon from '@mui/icons-material/Speed';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 import { LsoEvaluationPage } from "./pages/lso-evaluation/lso-evaluation-page";
 import LsoPage from "./pages/lso/lso-page";
 import PortalLayout from "./components/portal/portal-layout";
-import { Dashboard } from "./pages/dashboard/dasboard";
 import { MenuList } from "./components/portal";
-
-import SpeedIcon from '@mui/icons-material/Speed';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import { Box } from "@mui/material";
 import { ServicePopover } from "./components/popovers/service-popover";
+import { AuthGuard } from "./components/authentification/auth-gard";
+import { LoginPage } from "./pages/authentication/login";
 
 
 const NAV_BAR_CONTENT = (
@@ -27,6 +26,10 @@ const MENU_LIST: MenuList = [
     title: "LSO",
     path: "lso",
     Icon: SpeedIcon
+  }, {
+    title: "Evaluation",
+    path: "evaluation-upload",
+    Icon: CloudUploadIcon
   }
 ]
 
@@ -44,16 +47,19 @@ export const APP_ROUTER = createHashRouter([
       }, {
         path: "lso",
         element: <LsoPage />
+      }, {
+        path: "evaluation-upload",
+        element: (
+          <AuthGuard login={<LoginPage />} >
+            <LsoEvaluationPage />
+          </AuthGuard>
+        )
       }
     ]
   }, {
-    path: "/lso",
-    element: <LsoPage />
-  }, {
     path: "/evaluation/:modex",
     element: <LsoEvaluationPage />
-  },
-  {
+  }, {
     path: "*",
     element: (<div>Not found :(</div>),
   },
