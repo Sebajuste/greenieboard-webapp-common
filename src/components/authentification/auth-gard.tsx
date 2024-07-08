@@ -1,6 +1,6 @@
 import { Fragment, ReactNode, useState } from "react";
-import { useAuth } from "../../contexts/jwt-auth-context";
 import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../contexts/auth-context";
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -10,6 +10,7 @@ interface AuthGuardProps {
 export function AuthGuard({ children, login }: AuthGuardProps) {
 
   const { isAuthenticated } = useAuth();
+
 
   const [requestedLocation, setRequestedLocation] = useState<string | null>(null);
 

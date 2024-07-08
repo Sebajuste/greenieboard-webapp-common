@@ -1,14 +1,15 @@
-import { createHashRouter, Navigate } from "react-router-dom";
-import SpeedIcon from '@mui/icons-material/Speed';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import SpeedIcon from '@mui/icons-material/Speed';
+import { createHashRouter, Navigate } from "react-router-dom";
 
+import { AuthGuard } from "./components/authentification/auth-gard";
+import { ServicePopover } from "./components/popovers/service-popover";
+import { MenuList } from "./components/portal";
+import PortalLayout from "./components/portal/portal-layout";
+import { LoginPage } from "./pages/authentication/login";
 import { LsoEvaluationPage } from "./pages/lso-evaluation/lso-evaluation-page";
 import LsoPage from "./pages/lso/lso-page";
-import PortalLayout from "./components/portal/portal-layout";
-import { MenuList } from "./components/portal";
-import { ServicePopover } from "./components/popovers/service-popover";
-import { AuthGuard } from "./components/authentification/auth-gard";
-import { LoginPage } from "./pages/authentication/login";
+import { LSOUpload } from './pages/lso/lso-upload';
 
 
 const NAV_BAR_CONTENT = (
@@ -27,7 +28,7 @@ const MENU_LIST: MenuList = [
     path: "lso",
     Icon: SpeedIcon
   }, {
-    title: "Evaluation",
+    title: "Upload Evaluations",
     path: "evaluation-upload",
     Icon: CloudUploadIcon
   }
@@ -51,7 +52,7 @@ export const APP_ROUTER = createHashRouter([
         path: "evaluation-upload",
         element: (
           <AuthGuard login={<LoginPage />} >
-            <LsoEvaluationPage />
+            <LSOUpload />
           </AuthGuard>
         )
       }
@@ -59,6 +60,9 @@ export const APP_ROUTER = createHashRouter([
   }, {
     path: "/evaluation/:modex",
     element: <LsoEvaluationPage />
+  }, {
+    path: "/login",
+    element: <LoginPage />
   }, {
     path: "*",
     element: (<div>Not found :(</div>),

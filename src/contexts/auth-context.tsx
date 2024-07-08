@@ -1,6 +1,6 @@
-import { createContext, ReactNode, useContext, useEffect, useReducer } from "react";
-import { jwtDecode } from "jwt-decode";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+import { createContext, ReactNode, useContext, useEffect, useReducer } from "react";
 
 export type AuthUser = null | Record<string, any>;
 
@@ -21,6 +21,7 @@ export type AuthState = {
   isAuthenticated: boolean;
   isInitialized: boolean;
   user: AuthUser;
+  token: any | null;
 };
 
 enum Types {
@@ -34,9 +35,10 @@ type JWTAuthPayload = {
   [Types.Init]: {
     isAuthenticated: boolean;
     user: AuthUser;
+    token: any | null;
   };
   [Types.Logout]: undefined;
-  [Types.Login]: { user: AuthUser };
+  [Types.Login]: { user: AuthUser, token: any };
   [Types.Register]: { user: AuthUser };
 };
 
@@ -46,10 +48,17 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isInitialized: false,
   user: null,
+  token: null
 };
 
 const isValidToken = (accessToken: string) => {
   if (!accessToken) return false;
+
+  if (!accessToken.includes('.')) {
+
+    // const decodedToken = JSON.parse(accessToken)
+    return true;
+  };
 
   const decodedToken = jwtDecode<{ exp: number }>(accessToken);
   const currentTime = Date.now() / 1000;
@@ -58,7 +67,7 @@ const isValidToken = (accessToken: string) => {
 
 const setSession = (accessToken: string | null) => {
   if (accessToken) {
-    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("accessToken", JSON.stringify(accessToken));
     axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
   } else {
     localStorage.removeItem("accessToken");
@@ -66,12 +75,23 @@ const setSession = (accessToken: string | null) => {
   }
 };
 
+function getSession() {
+  const accessToken = localStorage.getItem('accessToken');
+
+  if (accessToken) {
+    return JSON.parse(accessToken);
+  }
+
+  return null;
+}
+
 const reducer = (state: AuthState, action: JWTActions) => {
   switch (action.type) {
     case "INIT": {
       return {
         isInitialized: true,
         user: action.payload.user,
+        token: action.payload.token,
         isAuthenticated: action.payload.isAuthenticated,
       };
     }
@@ -103,44 +123,76 @@ const reducer = (state: AuthState, action: JWTActions) => {
   }
 };
 
+
+
+export interface AuthHandler {
+  login: (email: string, password: string) => Promise<any>
+  logout: () => void;
+  register: (email: string, password: string, username: string) => Promise<any>;
+}
+
+export interface AuthService extends AuthState, AuthHandler {
+  /*
+  login: (email: string, password: string) => Promise<any>;
+  logout: () => void;
+  register: (email: string, password: string, username: string) => Promise<any>;
+  */
+}
+
 export const AuthContext = createContext({
+  /*
+  isAuthenticated: initialState.isAuthenticated,
+  isInitialized: initialState.isInitialized,
+  user: initialState.user,
+  accessToken: initialState.accessToken,
+  */
   ...initialState,
-  method: "JWT",
-  login: (email: string, password: string) => Promise.resolve(),
+  // method: "JWT",
+  login: (email: string, password: string) => Promise.resolve({}),
   logout: () => { },
   register: (email: string, password: string, username: string) => Promise.resolve()
-} as any);
+} as AuthService);
 
 type AuthProviderProps = {
   children: ReactNode;
+  authHandler: AuthHandler;
 };
 
-export function AuthProvider({ children }: AuthProviderProps) {
+export function AuthProvider({ children, authHandler }: AuthProviderProps) {
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const login = async (email: string, password: string) => {
+    /*
     const response = await axios.post("/api/auth/login", {
       email,
       password,
     });
     //@ts-ignore
     const { accessToken, user } = response.data;
+    */
 
-    setSession(accessToken);
-    dispatch({
-      type: Types.Login,
-      payload: {
-        user,
-      },
+    return authHandler.login(email, password).then(token => {
+      setSession(token);
+      // const { accessToken, user } = response.data;
+      const user = null;
+      dispatch({
+        type: Types.Login,
+        payload: {
+          user,
+          token
+        }
+      });
+      return token;
     });
+
   };
 
-  const register = async (
-    email: string,
-    username: string,
-    password: string
-  ) => {
+  const register = async (email: string, username: string, password: string) => {
+
+    return authHandler.register(email, password, username);
+
+    /*
     const response = await axios.post("/api/auth/register", {
       email,
       username,
@@ -157,14 +209,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
         user,
       },
     });
+    */
   };
 
   const logout = () => {
+    authHandler.logout();
     setSession(null);
     dispatch({ type: Types.Logout });
   };
 
   useEffect(() => {
+
+    const token = getSession();
+
+    if (token) { // && isValidToken(token)) {
+      // Session can be restored
+      setSession(token);
+
+      const user = null;
+      dispatch({
+        type: Types.Init,
+        payload: {
+          user,
+          isAuthenticated: true,
+          token
+        },
+      });
+    } else {
+      // No session exists
+      dispatch({
+        type: Types.Init,
+        payload: {
+          user: null,
+          isAuthenticated: false,
+          token: null
+        },
+      });
+    }
+
+
+    /*
     (async () => {
       try {
         const accessToken = window.localStorage.getItem("accessToken");
@@ -203,18 +287,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
       }
     })();
+    */
   }, []);
 
   if (!state.isInitialized) {
     // return <LoadingScreen />;
+    //@ts-ignore
     return (<div>Loading</div>)
   }
 
   return (
+    //@ts-ignore
     <AuthContext.Provider
       value={{
         ...state,
-        method: "JWT",
+        // method: "JWT",
         login,
         logout,
         register,
@@ -226,4 +313,4 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = (): AuthService => useContext(AuthContext);
