@@ -1,21 +1,12 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { createContext, ReactNode, useContext, useEffect, useReducer } from "react";
+import { ActionMap } from "../utils/types";
 
 export type AuthUser = null | Record<string, any>;
 
 // All types
 // =============================================
-export type ActionMap<M extends { [index: string]: any }> = {
-  [Key in keyof M]: M[Key] extends undefined
-  ? {
-    type: Key;
-  }
-  : {
-    type: Key;
-    payload: M[Key];
-  };
-};
 
 export type AuthState = {
   isAuthenticated: boolean;
@@ -65,10 +56,10 @@ const isValidToken = (accessToken: string) => {
   return decodedToken.exp > currentTime;
 };
 
-const setSession = (accessToken: string | null) => {
+const setSession = (accessToken: any) => {
   if (accessToken) {
     localStorage.setItem("accessToken", JSON.stringify(accessToken));
-    axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+    axios.defaults.headers.common.Authorization = `Bearer ${accessToken.access_token}`;
   } else {
     localStorage.removeItem("accessToken");
     delete axios.defaults.headers.common.Authorization;
@@ -98,14 +89,16 @@ const reducer = (state: AuthState, action: JWTActions) => {
     case "LOGIN": {
       return {
         ...state,
-        isAuthenticated: true,
         user: action.payload.user,
+        token: action.payload.token,
+        isAuthenticated: true,
       };
     }
     case "LOGOUT": {
       return {
         ...state,
         user: null,
+        token: null,
         isAuthenticated: false,
       };
     }

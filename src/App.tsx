@@ -10,15 +10,11 @@ import { ImplicitGrantParams, OAuth2ImplicitGrant } from './services/oauth2/oaut
 import { createService } from './services/service-provider';
 import ffsTheme from './themes/2nd-theme';
 
-
-
 const OAUTH2_DISCORD: ImplicitGrantParams = {
   clientId: '1259077922929639520',
-  // authorizationUrl: `https://discord.com/oauth2/authorize?client_id=1259077922929639520&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3000&scope=identify`,
-  authorizationUrl: `https://discord.com/oauth2/authorize?response_type=token&client_id=1259077922929639520&scope=identify+guilds+guilds.members.read`,
+  authorizationUrl: `https://discord.com/oauth2/authorize?response_type=token&client_id=${process.env.REACT_APP_DISCORD_CLIENTID}&scope=identify+guilds+guilds.members.read`,
   redirectPath: 'http://localhost:3000',
   scope: 'identity',
-  // tokenResult: (result: any) => result.code,
   popupWidth: 600,
   popupHeight: 800
 };

@@ -36,9 +36,6 @@ export function LoginPage() {
             Sign in with Discord
           </Button >
 
-          {/* @ts-ignore */}
-          <label>test %REACT_APP_DISCORD_CLIENTID% -- {process.env.REACT_APP_DISCORD_CLIENTID} -- </label>
-
         </FlexBox>
       </Card>
     </FlexBox>
