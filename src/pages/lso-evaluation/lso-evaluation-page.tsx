@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useReducer, useState } from "react";
 import { LSODS } from "../../components/LSODS/lsods";
 import { StopWatch } from "../../components/stop-watch/stop-watch";
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -16,6 +16,7 @@ import { Box, Button, Chip, LinearProgress, styled, Switch, TextField } from "@m
 import { FlexBox } from "../../components/flex-box";
 import { CountDown } from "../../components/stop-watch/count-down";
 import { EvaluationSteps } from "../../components/lso-grade/lso-evaluation";
+import { ActionMap } from "../../utils/types";
 
 interface Step {
   name: LSOStep,
@@ -41,7 +42,9 @@ const STEPS: Array<Step> = [
     name: 'IC',
     label: 'In close',
     scale: 0.7
-  }, {
+  }
+  /*
+  , {
     name: 'AR',
     label: 'At ramp',
     scale: 1.6
@@ -54,6 +57,7 @@ const STEPS: Array<Step> = [
     label: 'In Wires',
     scale: 4.0
   }
+    */
 ]
 
 
@@ -67,7 +71,10 @@ function LSOState({ stepIndex, evaluationSteps }: { stepIndex: number, evaluatio
 
   const lsoState = previousStep ? previousStep.name : step.name;
 
-  const steps = evaluationSteps[lsoState];
+  const steps = evaluationSteps[lsoState] ?? {
+    position: { x: 0, y: 0 },
+    items: []
+  };
 
 
   const advices = steps.items.map((item: string, index: number) => {
@@ -81,7 +88,7 @@ function LSOState({ stepIndex, evaluationSteps }: { stepIndex: number, evaluatio
     <FlexBox className="lso-state">
       <div>
         <h5>Current Step</h5>
-        <label>{step?.name} - {step.label}</label>
+        <label>{step?.name} - {step?.label}</label>
       </div>
       <ul className="lso-advises">
         {waveOff ? 'Wave Off ! Wave Off !' : advices}
@@ -109,6 +116,91 @@ const StyledFlexBox = styled(FlexBox)(({ theme }) => ({
 }));
 
 
+
+enum StepsActionsTypes {
+  Save = "SAVE",
+  Next = "NEXT",
+  SaveAndNext = "SAVE_AND_NEXT",
+  Previous = "PREVIOUS",
+  SaveAndPrevious = "SAVE_AND_PREVIOUS"
+}
+
+type StateSteps = { currentIndex: number, evaluationSteps: LSOEvaluationSteps }
+
+type StatePayload = {
+  [StepsActionsTypes.Save]: LSOEvaluationStep;
+  [StepsActionsTypes.Next]: undefined;
+  [StepsActionsTypes.SaveAndNext]: LSOEvaluationStep;
+  [StepsActionsTypes.Previous]: undefined;
+  [StepsActionsTypes.SaveAndPrevious]: LSOEvaluationStep;
+};
+
+type StepsActions = ActionMap<StatePayload>[keyof ActionMap<StatePayload>];
+
+function stateReducer(steps: StateSteps, action: StepsActions): StateSteps {
+
+  switch (action.type) {
+
+    case "SAVE": {
+      return {
+        currentIndex: steps.currentIndex,
+        evaluationSteps: {
+          ...steps.evaluationSteps,
+          [STEPS[steps.currentIndex].name]: action.payload
+        }
+      };
+    }
+
+    case "NEXT": {
+      const currentIndex = Math.min(STEPS.length - 1, steps.currentIndex + 1);
+      return {
+        currentIndex,
+        evaluationSteps: { ...steps.evaluationSteps }
+      };
+    }
+
+    case "SAVE_AND_NEXT": {
+      const currentIndex = Math.min(STEPS.length - 1, steps.currentIndex + 1);
+      return {
+        currentIndex,
+        evaluationSteps: {
+          ...steps.evaluationSteps,
+          [STEPS[steps.currentIndex].name]: action.payload
+        }
+      };
+    }
+
+    case "PREVIOUS": {
+      const currentIndex = Math.max(0, steps.currentIndex - 1);
+      return {
+        currentIndex,
+        evaluationSteps: { ...steps.evaluationSteps }
+      };
+    }
+
+    case "SAVE_AND_PREVIOUS": {
+      const currentIndex = Math.max(0, steps.currentIndex - 1);
+      return {
+        currentIndex,
+        evaluationSteps: {
+          ...steps.evaluationSteps,
+          [STEPS[steps.currentIndex].name]: action.payload
+        }
+      };
+    }
+
+    default: {
+      return steps;
+    }
+  }
+
+};
+
+const initialStateSteps: StateSteps = {
+  currentIndex: 0,
+  evaluationSteps: {} as LSOEvaluationSteps
+};
+
 export function LsoEvaluationPage() {
 
   const initialModex = parseInt(useParams().modex ?? '0');
@@ -119,9 +211,10 @@ export function LsoEvaluationPage() {
 
   const [modex, setModex] = useState(initialModex);
 
-  const [stepIndex, setStepIndex] = useDebounce(2000, 0)
-
-  const [evaluationSteps, setEvaluationSteps] = useState<LSOEvaluationSteps>({} as LSOEvaluationSteps);
+  // const [stepIndex, setStepIndex] = useDebounce(2000, 0)
+  // const [stepIndex, setStepIndex] = useState(0)
+  const [steps, dispatchSteps] = useReducer(stateReducer, initialStateSteps as StateSteps);
+  // const [evaluationSteps, setEvaluationSteps] = useState<LSOEvaluationSteps>({} as LSOEvaluationSteps);
 
   const [time, setTime] = useState(0);
 
@@ -136,13 +229,48 @@ export function LsoEvaluationPage() {
 
   const timestamp = Date.now();
 
+
+  const nextStep = () => {
+
+    if (steps.currentIndex >= (STEPS.length - 1)) {
+      setEvaluating(false);
+    }
+
+    /*
+    dispatchSteps({
+      type: StepsActionsTypes.Next
+    });
+    */
+    dispatchSteps({
+      type: StepsActionsTypes.SaveAndNext,
+      payload: steps.evaluationSteps[STEPS[steps.currentIndex].name] ?? steps.evaluationSteps[STEPS[steps.currentIndex - 1].name]
+    });
+
+    // setStepIndex((oldStep: number) => Math.min(STEPS.length, oldStep + 1));
+  };
+
+
+  const previousStep = () => {
+    dispatchSteps({
+      type: StepsActionsTypes.Previous
+    });
+    // setStepIndex((oldStep: number) => Math.max(STEPS.length, oldStep - 1));
+  };
+
   const stateChangedHandler = (evaluationStep: LSOEvaluationStep) => {
 
+    /*
     setEvaluationSteps(oldValue => {
       const step = STEPS[stepIndex];
       return { ...oldValue, [step.name]: evaluationStep };
-    })
+    });
+    */
 
+    dispatchSteps({
+      type: StepsActionsTypes.Save,
+      payload: evaluationStep
+    });
+    /*
     setStepIndex((oldValue: number) => {
       const newValue = (oldValue + 1);
       setEnableCountDown(false);
@@ -153,6 +281,7 @@ export function LsoEvaluationPage() {
       }
       return newValue;
     });
+    */
 
 
 
@@ -176,13 +305,15 @@ export function LsoEvaluationPage() {
       modex,
       timestamp,
       time,
-      steps: evaluationSteps,
-      grade: analyseGrade(wire as Wire, evaluationSteps),
+      steps: steps.evaluationSteps,
+      grade: analyseGrade(wire as Wire, steps.evaluationSteps),
       wire: wire as Wire
     });
     navigate('/dashboard/lso')
   };
 
+  const stepIndex = steps.currentIndex;
+  const evaluationSteps = steps.evaluationSteps;
 
   return (
     <div className="lso-evaluation-page">
@@ -220,8 +351,16 @@ export function LsoEvaluationPage() {
         <div className="lso-evaluation-infos">
 
           {isEvaluating ? (
-            <LSOState stepIndex={stepIndex} evaluationSteps={evaluationSteps} />
+            <>
+              <FlexBox style={{ justifyContent: "space-between", gap: 10 }}>
+                <Button variant="contained" onClick={previousStep}>Previous</Button>
+                <Button variant="contained" onClick={nextStep}>Next</Button>
+              </FlexBox>
+
+              <LSOState stepIndex={stepIndex} evaluationSteps={evaluationSteps} />
+            </>
           ) : null}
+
 
           <EvaluationSteps evaluationSteps={evaluationSteps} />
 

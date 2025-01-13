@@ -1,7 +1,7 @@
-import { Box, useMediaQuery, Theme, styled, AppBar, Toolbar } from "@mui/material";
+import { AppBar, Box, Theme, Toolbar, styled, useMediaQuery } from "@mui/material";
 import { useContext } from "react";
+import { ProfilePopover } from "../popovers/profile-popover";
 import { TitleContext } from "./contexts/portal-context";
-import { Label } from "@mui/icons-material";
 
 // custom styled components
 const DashboardNavbarRoot = styled(AppBar)(() => ({
@@ -86,8 +86,8 @@ export function PortalNavbar({ onToggleShowSideBar, children }: { onToggleShowSi
 
           {/* 
           <LanguagePopover />
-          <ProfilePopover />
           */}
+          <ProfilePopover />
         </StyledToolBar>
       </DashboardNavbarRoot>
     );
@@ -120,7 +120,7 @@ export function PortalNavbar({ onToggleShowSideBar, children }: { onToggleShowSi
             <ServicePopover />
           </>
         )*/}
-        { /*<ProfilePopover /> */}
+        <ProfilePopover />
       </StyledToolBar>
     </DashboardNavbarRoot>
   );

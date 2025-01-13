@@ -1,24 +1,21 @@
-import { FC, Fragment, useContext, useState } from "react"
-import { Link, useNavigate, useNavigation } from "react-router-dom";
-import { Box, BoxProps, Button, Collapse, IconButton, InputBase, styled, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import { Box, Button, Collapse, IconButton, Table, TableBody, TableCell, TableHead, TableRow, TextField, styled } from "@mui/material";
+import { Fragment, useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import ScrollBar from "simplebar-react";
 
 import { EvaluationServiceProvider } from "../../App";
-import { LSOEvaluation } from "../../services/evaluation-service";
-import { Timer } from "../../components/stop-watch/timer";
-
-
+import { FlexBox } from "../../components/flex-box";
+import { EvaluationSteps } from "../../components/lso-grade/lso-evaluation";
 import { Grade } from "../../components/lso-grade/lso-grade";
 import { useTitle } from "../../components/portal/contexts/portal-context";
-
-
-import ScrollBar from "simplebar-react";
-import { FlexBox } from "../../components/flex-box";
+import { Timer } from "../../components/stop-watch/timer";
+import { LSOEvaluation } from "../../services/evaluation-service";
 
 import './lso-page.scss';
-import { EvaluationSteps } from "../../components/lso-grade/lso-evaluation";
 
+/*
 function DiscordUser() {
 
   const [user, setUser] = useState('');
@@ -69,6 +66,7 @@ function DiscordUser() {
   )
 
 }
+  */
 
 
 // styled component
@@ -94,6 +92,7 @@ function Row({ evaluation }: { evaluation: LSOEvaluation }) {
   const [open, setOpen] = useState(false);
 
   return (
+    //@ts-ignore
     <Fragment>
       <TableRow>
         <TableCell style={{ padding: 0 }}>
@@ -166,6 +165,7 @@ export default function LsoPage() {
   return (
     <Box pt={2} pb={4}>
 
+      {/* @ts-ignore */}
       <StyledFlexBox>
         <TextField type="number" id="outlined-basic" label="Modex" variant="outlined" value={newModex} onChange={(e) => setNewModex(e.target.value)} />
         <Button variant="contained" onClick={startEvaluationHandler} disabled={newModex === ''}>
@@ -174,6 +174,7 @@ export default function LsoPage() {
       </StyledFlexBox>
 
       <Box>
+        {/* @ts-ignore */}
         <ScrollBar>
           <Table>
             <TableHead>

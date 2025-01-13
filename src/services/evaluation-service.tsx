@@ -83,12 +83,13 @@ export function analyseGrade(wire: Wire, steps: LSOEvaluationSteps): LSOGrade {
   const haveDerivation = items.includes('LUR') || items.includes('LUL') || items.includes('H') || items.includes('P');
   const haveLowDerivation = items.includes('(LUR)') || items.includes('(LUL)') || items.includes('(H)') || items.includes('(P)');
 
-  const goodBC = !steps.BC.items.includes('_LUR_') && !steps.BC.items.includes('_LUL_') && !steps.BC.items.includes('_H_') && !steps.BC.items.includes('_P_');
-  const perfectIC = steps.IC.items.length == 0;
-  const perfectTL = steps.TL.items.length == 0;
-  const perfectAR = steps.AR.items.length == 0;
+  const goodBC = !steps.BC?.items.includes('_LUR_') && !steps.BC?.items.includes('_LUL_') && !steps.BC?.items.includes('_H_') && !steps.BC?.items.includes('_P_');
+  const perfectIC = (steps.IC?.items.length ?? 0) == 0;
+  const perfectTL = (steps.TL?.items.length ?? 0) == 0;
+  const perfectAR = (steps.AR?.items.length ?? 0) == 0;
 
-  const dangerousPass = steps.AR.items.includes('P') || steps.AR.items.includes('_P_') || steps.TL.items.includes('P') || steps.TL.items.includes('_P_');
+  // const dangerousPass = steps.AR?.items.includes('P') || steps.AR?.items.includes('_P_') || steps.TL?.items.includes('P') || steps.TL?.items.includes('_P_');
+  const dangerousPass = steps.IC?.items.includes('_P_') || steps.IC?.items.includes('P')
 
   if (!haveHighDerivation && goodBC && perfectIC && perfectTL && perfectAR && wire === '#3') {
     return '_OK_';

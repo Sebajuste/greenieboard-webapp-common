@@ -1,8 +1,8 @@
 import { Apps } from "@mui/icons-material";
 import { Avatar, Badge, Box, IconButton, useTheme } from "@mui/material";
 import { Fragment, useRef, useState } from "react";
-import PopoverLayout from "./popover-layout";
 import { FlexBox } from "../flex-box";
+import PopoverLayout from "./popover-layout";
 
 // dummy  data
 const services = [
@@ -60,8 +60,8 @@ function ListItem({ service }: ListItemProps) {
 
 export function ServicePopover() {
 
-
   const anchorRef = useRef(null);
+
   const [open, setOpen] = useState(false);
 
   return (
