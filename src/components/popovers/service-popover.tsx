@@ -9,7 +9,7 @@ const services = [
   {
     title: "Web Site",
     body: "2nd FFS - Website",
-    image: "favicon.png",
+    image: "http://2nd-ffs.fr/assets/images/favicon.png",
     path: "http://2nd-ffs.fr/",
   },
   {
