@@ -81,8 +81,8 @@ function LSOState({ stepIndex, evaluationSteps }: { stepIndex: number, evaluatio
     return (<li key={index}> {ITEM_INFO[item] ?? item} </li>);
   });
 
-  const waveOff = (lsoState == 'AR' && (steps.items.includes('P') || steps.items.includes('_P_'))) ||
-    ((lsoState == 'TL') && (steps.items.includes('P') || steps.items.includes('_P_')));
+  const waveOff = (lsoState == 'AR' && (steps.items.includes('LO') || steps.items.includes('_LO_'))) ||
+    ((lsoState == 'TL') && (steps.items.includes('LO') || steps.items.includes('_LO_')));
 
   return (
     <FlexBox className="lso-state">
