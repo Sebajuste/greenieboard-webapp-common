@@ -1,10 +1,9 @@
-import { useContext, useEffect, useReducer, useState } from "react";
+import { useContext, useReducer, useState } from "react";
 import { LSODS } from "../../components/LSODS/lsods";
 import { StopWatch } from "../../components/stop-watch/stop-watch";
 import CancelIcon from '@mui/icons-material/Cancel';
 import SaveIcon from '@mui/icons-material/Save';
 
-import { useDebounce } from "../../hooks/useDebounce";
 import { useNavigate, useParams } from "react-router-dom";
 import { EvaluationServiceProvider } from "../../App";
 import { LSOEvaluationSteps, LSOAnalysePosition, LSOEvaluationStep, Wire, LSOStep, LSOGrade, analyseGrade } from "../../services/evaluation-service";
@@ -12,9 +11,8 @@ import { LSOEvaluationSteps, LSOAnalysePosition, LSOEvaluationStep, Wire, LSOSte
 import "./lso-evaluation-page.scss";
 import { ITEM_INFO } from "../../services/evaluation-iteminfo";
 import { Grade } from "../../components/lso-grade/lso-grade";
-import { Box, Button, Chip, LinearProgress, styled, Switch, TextField } from "@mui/material";
+import { Button, styled, Switch, TextField } from "@mui/material";
 import { FlexBox } from "../../components/flex-box";
-import { CountDown } from "../../components/stop-watch/count-down";
 import { EvaluationSteps } from "../../components/lso-grade/lso-evaluation";
 import { ActionMap } from "../../utils/types";
 
@@ -292,7 +290,7 @@ export function LsoEvaluationPage() {
     if (!isEvaluating && time > 0) return;
 
     setEvaluating(true);
-    setEnableCountDown(true);
+    // setEnableCountDown(true);
 
     const analyseStep = LSOAnalysePosition(position);
 

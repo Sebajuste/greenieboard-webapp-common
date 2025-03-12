@@ -6,9 +6,9 @@ export const ITEM_INFO: { [key: LSOEvaluationItem]: string } = {
   'P': 'Power',
   '_P_': 'Power !!!',
 
-  '(LO)': 'Little pow',
+  '(LO)': 'Little power',
   'LO': 'Low',
-  '_LO_': 'Vry low',
+  '_LO_': 'Very low',
 
   'LUL': 'Right for line up',
   '_LUL_': 'Right for line up',
